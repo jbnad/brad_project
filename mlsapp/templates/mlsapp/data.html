@@ -281,8 +281,6 @@ $(document).ready(function()
         $(this).attr('href',join_address)       
     })
 
-
-    
 }     
 ); 
 
@@ -301,6 +299,10 @@ $(document).ready(function()
 #deleted_list_link{
     margin-left: 20px;
 }
+#update_time{
+    float: right;
+    margin-right: 100px;
+}
 </style>
 </head>
 <div id="dialog-form" title="Edit Note">
@@ -316,6 +318,7 @@ $(document).ready(function()
 <button class="btn" type="button" id="watchList">Watch</button>
 <a id="watch_list_link" href="watch_list">Watch List</a>
 <a id="deleted_list_link" href="deleted">Deleted List</a>
+<span id="update_time">Last Updated: {{ latest_time }}</span>
 <table id="myTable" class="tablesorter"> 
 <thead>
 

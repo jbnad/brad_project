@@ -1,13 +1,19 @@
 import MySQLdb as sqldb
 from sql import queries
 
-db = sqldb.connect("localhost","root","","ben_test2")
+db = sqldb.connect("localhost","root","","main")
 cursor = db.cursor()
 
+query_get_timestamp =  queries["get_latest_timestamp"]
+
+cursor.execute(query_get_timestamp)
+result_time = cursor.fetchone()[0]
+print result_time
+
 #create table
-my_query = queries["create_table"]
-cursor.execute(my_query)
-cursor.close()
+#my_query = queries["create_table"]
+#cursor.execute(my_query)
+#cursor.close()
 
 #update deleted row
 #mls_ids = [40702587,407086961,40709876,40712696]

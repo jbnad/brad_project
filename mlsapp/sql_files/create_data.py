@@ -15,6 +15,30 @@ mydb = MySQLdb.connect(host=my_host,
     db='main')
 cursor = mydb.cursor()
 
+
+#create table
+try:
+    create_table_query = queries['create_table']
+    cursor.execute(create_table_query)
+    mydb.commit()
+except Exception as e:
+    print str(e),type(e)
+    sys.exit()
+
+#create table
+try:
+    create_table_query = queries['create_table_update_time']
+    cursor.execute(create_table_query)
+    mydb.commit()
+except Exception as e:
+    print str(e),type(e)
+    sys.exit()
+
+
+
+
+
+#insert into real_estate table
 csv_data = csv.reader(file(input_file))
 
 #gets header and skips first row
@@ -43,7 +67,8 @@ cursor.execute(final1)
 mydb.commit()
 
 
-#update update time table
+
+#update time table
 insert_update_time_query = queries['insert_into_update_time']
 cursor.execute(insert_update_time_query)
 mydb.commit()
@@ -52,4 +77,5 @@ mydb.commit()
 
 cursor.close()
 
-print 'done updating'
+
+print 'done'

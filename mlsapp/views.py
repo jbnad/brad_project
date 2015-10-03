@@ -5,7 +5,7 @@ from django.http import HttpResponse,HttpResponseRedirect
 
 import MySQLdb as sqldb
 from sql_files.sql import queries
-db = sqldb.connect("localhost","root","","ben_test2")
+db = sqldb.connect("localhost","root","","main")
 
 
 def notes(request):
@@ -119,15 +119,21 @@ def update_note(request):
 
 def get_main(request):
     query = queries["get_not_deleted_not_hotlist"]
-    
+    query_get_timestamp =  queries["get_latest_timestamp"]
+
+
     cursor = db.cursor()
     cursor.execute(query)
     result = cursor.fetchall()
+
+    cursor.execute(query_get_timestamp)
+    result_time = cursor.fetchone()[0]
+
     cursor.close()
 
-    return_data = result[:2]
+    return_data = result[:10]
 
-    return render(request, 'mlsapp/data.html', {'mydata': return_data})
+    return render(request, 'mlsapp/data.html', {'mydata': return_data, 'latest_time': result_time})
 
 
 def watch_list(request):
