@@ -1,0 +1,366 @@
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"/></script> 
+<link rel="stylesheet" href="/static/mlsapp/tbsort.css" type="text/css" media="print, projection, screen"/>
+<script type="text/javascript" language="javascript" src="/static/mlsapp/tablefilter.js"/></script>
+<script type="text/javascript" language="javascript" src="/static/mlsapp/jquery.tablesorter.js"/></script>
+<script type="text/javascript" src="/static/mlsapp/tbsort.js"></script>
+
+<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+
+<script type="text/javascript">
+$(document).ready(function() 
+    { 
+        $("#myTable").tablesorter({
+            //disable sorters
+            headers: {
+            0: {
+                sorter: false
+            },
+            13: {
+                sorter: false
+            },
+            14: {
+                sorter: false
+            },
+            15: {
+                sorter: false
+            },
+        }}
+        ); 
+        //$("#myTable").tablesorter({widgets:['stickyHeaders']}); 
+        var my_table_props = {
+        col_0: "none",
+        col_1: "none",
+        col_2: "select",
+        col_3: "select",
+        col_4: "select",
+        col_6: "none",
+        col_7: "none",
+        col_8: "select",
+        col_9: "select",
+        col_10: "none",
+        col_11: "none",
+        col_12: "none",
+        col_13: "none",
+        col_14: "none",
+        col_15: "none",
+        col_16: "none",
+        display_all_text: " [ Show all ] ",
+        sort_select: true
+        };
+        var tf = setFilterGrid("myTable", my_table_props);
+
+        ////////////////////////////////////////////////////////////////////    
+        //////////////////Beginning DELETE ROWS event///////////////////////
+        $("#deleteRows").on("click", function(er){    
+        
+        //http://stackoverflow.com/questions/9579721/convert-html-table-to-array-in-javascript
+        myTableArray = [];
+        $('input:checkbox:checked').parents("tr").each(function() {
+        var arrayOfThisRow = [];
+        var tableData = $(this).find('td');
+        if (tableData.length > 0) {
+            tableData.each(function() { arrayOfThisRow.push($(this).text()); });
+            myTableArray.push(arrayOfThisRow);
+        }
+        });
+        
+        $('input:checkbox:checked').parents("tr").remove(); 
+        
+        //keeps deleted items out of the table
+        $('.tablesorter').trigger('update'); 
+        
+
+        if (myTableArray.length > 0){
+        
+        $.ajax({
+                //traditional: true, //avoids the brackets from being added before the name of an array
+                 type:"POST",
+                 url: "un_watch_and_delete_and_rows",
+                 data : {'algo' : myTableArray},
+                 success: function(algo){
+                     console.log(algo);
+                 }
+        });
+
+        }
+
+        else{
+            alert('Please select something to delete.')
+        }
+
+
+        });
+        //////////////////End DELETE ROWS event/////////////////////////////
+        ////////////////////////////////////////////////////////////////////
+
+        
+        ////////////////////////////////////////////////////////////////////    
+        //////////////////Beginning Watch LIST event///////////////////////
+        $("#unwatchList").on("click", function(er){    
+        
+        //http://stackoverflow.com/questions/9579721/convert-html-table-to-array-in-javascript
+        myTableArray = [];
+        $('input:checkbox:checked').parents("tr").each(function() {
+        var arrayOfThisRow = [];
+        var tableData = $(this).find('td');
+        if (tableData.length > 0) {
+            tableData.each(function() { arrayOfThisRow.push($(this).text()); });
+            myTableArray.push(arrayOfThisRow);
+        }
+        });
+
+        $('input:checkbox:checked').parents("tr").remove(); 
+        
+        //keeps deleted items out of the table
+        $('.tablesorter').trigger('update'); 
+        
+        if (myTableArray.length > 0){
+            $.ajax({
+                    //traditional: true, //avoids the brackets from being added before the name of an array
+                     type:"POST",
+                     url: "remove_watch_list",
+                     data : {'algo' : myTableArray},
+                     success: function(algo){
+                         console.log(algo);
+                     }
+            });
+        }
+
+        else{
+            alert('Please select something to remove from the Watch List.')
+        }
+
+
+        });
+        //////////////////End Watch List event/////////////////////////////
+        ////////////////////////////////////////////////////////////////////
+
+
+
+    ////////////////Check All Box...When checked, checkall boxex//////////
+    $("#selectAll").change(function(){
+      $("input:checkbox").prop('checked', $(this).prop("checked"));
+      });
+
+
+
+
+
+    function saveNoteData(mls_id, new_note){        
+        $.ajax({
+                //traditional: true, //avoids the brackets from being added before the name of an array
+                 type:"POST",
+                 url:"update_note",
+                 data : {'mls_id' : mls_id, 'note_input': new_note},
+                 success: function(algo){
+                     console.log(algo);
+                 }
+        });
+        
+
+    }
+
+
+    //length_of_preview = 10
+    ////////////////////////////////////////////////////////////////////////
+    ////////////////////////Edit Note Event/////////////////////////////////
+    $( ".edit_note" ).button().on( "click", function() {
+    
+        //get mls id
+        var mls_id = $(this).closest('tr').find('td:eq(1)').text();
+
+        //set value using hidden notes row
+        $("#note_input").val($(this).closest('tr').find('td:eq(16)').text())
+        
+        //$('#target').html('what');
+
+        //get reference to hidden row which will be updated when I save dialog.
+        var note_column = $(this).closest('tr').find('td:eq(16)')
+
+        //get reference to note preview which will be update when I save dialog
+        var note_prev_column = $(this).closest('tr').find('td:eq(15) .note_preview')
+
+        dialog = $( "#dialog-form" ).dialog({
+            autoOpen: false,
+            height: 500,
+            width: 500,
+            modal: true,
+            buttons: {
+            //"Create an account": addUser,
+            Cancel: function() {
+              dialog.dialog( "close" );
+            },
+            Save: function() {
+                var new_note = $("#note_input").val() //get new note value
+                saveNoteData(mls_id, new_note);
+                
+                note_column.html(new_note)
+                if(new_note.length>10)
+                {
+                    note_prev_column.html(new_note.substring(0,10)+"...")
+                }
+                else{
+                    note_prev_column.html(new_note)    
+                }
+                dialog.dialog( "close" );  
+                }
+            },
+            close: function() {
+            form[ 0 ].reset();
+            //allFields.removeClass( "ui-state-error" ); //starts up a debugger????
+            },
+        });
+
+    
+        form = dialog.find( "form" ).on( "submit", function( event ) {
+          event.preventDefault();
+          console.log('just closed');
+          //addUser();
+        });
+
+        dialog.dialog( "open" );
+
+    });
+    ////////////////////////End Edit Note Event/////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+    
+    
+
+    //A hack to prevent dialog from showing up when page loads.
+    //Need to put actual dialog within edit_note event in order to drop in the MLS number.
+    //Because dialog created within edit_note event, the autoOpen false option didn't take effect on page load
+    dialog = $( "#dialog-form" ).dialog({autoOpen: false,});
+
+    //hides the column with the note in it.
+    $('td:nth-child(17)').hide();
+
+    //$('td:nth-child(7)').css('text-align', 'right'); //this floats whole td to the right, but we only want to float the button to the right.
+    $('.edit_note').css({'float': 'right','height': '16px', 'padding-top': '0em'});
+    $('.ui-button-text').css({'padding': '0em .5em'})
+    $('#myTable').css({'margin-right':'0px'})
+
+    
+    //set the preview note to a substring when page loads
+    $.each($('span.note_preview'), function(index, value){
+        var target = $(this)
+
+        if(target.html().length > 10)
+        {
+            target.html(target.html().substring(0,10)+'...')
+        }
+            
+    })
+
+    //add google map
+    $.each($('a.map'), function(index, value){
+        var myhref = $(this).attr('href');
+        var address = $(this).closest('tr').find('td:eq(6)').text();
+        var city = $(this).closest('tr').find('td:eq(7)').text();
+        
+        var split_address = address.split(' ')
+        split_address.push(city,'CA')
+        var join_address = 'https://www.google.com/maps/place/'+split_address.join('+')
+        
+        $(this).attr('href',join_address)       
+    })
+
+    //add zillow
+    $.each($('a.zill'), function(index, value){
+        var myhref = $(this).attr('href');
+        var address = $(this).closest('tr').find('td:eq(6)').text();
+        var city = $(this).closest('tr').find('td:eq(7)').text();
+        
+        var split_address = address.split(' ')
+        split_address.push(city,'CA')
+        var join_address = 'http://www.zillow.com/homes/'+split_address.join('_')+'_rb/'
+        
+        $(this).attr('href',join_address)       
+    })
+
+
+    
+}     
+); 
+
+</script>
+
+<style type="text/css">
+#unwatchList{
+    margin-left: 20px;
+}
+#deleteRows{
+    margin-left: 20px;
+}
+#main_link{
+    margin-left: 20px;
+}
+</style>
+</head>
+<div id="dialog-form" title="Edit Note">
+  <form>    
+      <textarea id="note_input" rows="14" cols="45"></textarea>
+      <!-- Allow form submission with keyboard without duplicating the dialog button -->
+      <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+  </form>
+</div>
+
+<td><input type="checkbox" id="selectAll">Select all</td>
+<button class="btn" type="button" id="deleteRows">Delete</button>
+<button class="btn" type="button" id="unwatchList">UnWatch</button>
+<a id="main_link" href="/mls/">Main</a>
+<table id="myTable" class="tablesorter"> 
+<thead>
+
+
+<tr>
+    <th></th> 
+    <th class="algo">Mls Number</th> 
+    <th>Class</th> 
+    <th>Building Type</th> 
+    <th>Area</th> 
+    <th>Price</th> 
+    <th>Address</th> 
+    <th>City</th>
+    <!-- <th>State</th> -->
+    <th>Status</th>
+    <th>Zoning</th>
+    <th>Days on Mkt</th>
+    <th>Date Added</th>
+    <th>Last Updated</th>
+    <th>Map</th>
+    <th>Zill</th>
+    <th>Note</th>
+    
+</tr> 
+</thead> 
+    {% for row in mydata %}
+    <tr>
+        <td><input type="checkbox" id="mycheck"/></td>
+        <td>{{ row.1 }}</td> <!-- mls number-->
+        <td>{{ row.2 }}</td> <!-- class -->
+        <td>{{ row.3 }}</td> <!-- building_type -->
+        <td>{{ row.4 }}</td> <!-- area -->
+        <td>{{ row.5 }}</td> <!-- price -->
+        <td>{{ row.6 }}</td> <!-- address -->
+        <td>{{ row.7 }}</td> <!-- city -->
+        <!--<td>{{ row.8 }}</td> --><!-- state -->
+        <td>{{ row.9 }}</td> <!-- status -->
+        <td>{{ row.10 }}</td> <!-- zoning -->
+        <td>{{ row.11 }}</td> <!-- days_on_market -->
+        <td>{{ row.12 }}</td> <!-- date_added -->
+        <td>{{ row.13 }}</td> <!-- last_updated -->
+        <td><a class="map" href="my map here" target="_blank">map</a></td>
+        <td><a class="zill" href="my zill here" target="_blank">zill</a></td>
+        <td><span class="note_preview">{{ row.16 }}</span>
+            <button class="edit_note">Edit Note</button></td>
+        <td>{{ row.16 }}</td>
+        
+    </tr>
+    {% endfor %}    
+
+</tbody> 
+</table>
+</html>
