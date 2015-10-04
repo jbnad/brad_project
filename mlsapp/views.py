@@ -5,6 +5,13 @@ from django.http import HttpResponse,HttpResponseRedirect
 
 import MySQLdb as sqldb
 from sql_files.sql import queries
+
+from datetime import datetime
+from dateutil import tz
+from_zone = tz.gettz('UTC')
+to_zone = tz.gettz('America/Los_Angeles')
+
+
 db = sqldb.connect("localhost","root","","main")
 
 
@@ -128,6 +135,9 @@ def get_main(request):
 
     cursor.execute(query_get_timestamp)
     result_time = cursor.fetchone()[0]
+    result_time = result_time.replace(tzinfo = from_zone)
+    result_time = result_time.astimezone(to_zone)
+    result_time = result_time.strftime('%Y-%m-%d %H:%M:%S')
 
     cursor.close()
 

@@ -1,5 +1,7 @@
 import MySQLdb as sqldb
 from sql import queries
+from datetime import datetime
+from dateutil import tz
 
 db = sqldb.connect("localhost","root","","main")
 cursor = db.cursor()
@@ -9,6 +11,17 @@ query_get_timestamp =  queries["get_latest_timestamp"]
 cursor.execute(query_get_timestamp)
 result_time = cursor.fetchone()[0]
 print result_time
+
+
+from_zone = tz.gettz('UTC')
+to_zone = tz.gettz('America/Los_Angeles')
+
+result_time2 = result_time.replace(tzinfo = from_zone)
+
+result_time3 = result_time2.astimezone(to_zone)
+
+a = result_time3.strftime('%Y-%m-%d %H-%M-%S')
+print type(a)
 
 #create table
 #my_query = queries["create_table"]
