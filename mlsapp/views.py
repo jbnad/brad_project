@@ -5,6 +5,7 @@ from django.http import HttpResponse,HttpResponseRedirect
 
 import MySQLdb as sqldb
 from sql_files.sql import queries
+import django.db
 
 from datetime import datetime
 from dateutil import tz
@@ -12,7 +13,25 @@ from_zone = tz.gettz('UTC')
 to_zone = tz.gettz('America/Los_Angeles')
 
 
-db = sqldb.connect("localhost","root","","main")
+#db = sqldb.connect("localhost","root","","main")
+
+
+def getsql(sql):
+    dbyo = sqldb.connect("localhost","root","","main")
+    cursor = dbyo.cursor()
+    cursor.execute(sql)
+    result = cursor.fetchall()
+    cursor.close()
+    dbyo.close()
+    return result
+
+def commmitsql(sql):
+    dbyo = sqldb.connect("localhost","root","","main")
+    cursor = dbyo.cursor()
+    cursor.execute(sql)
+    dbyo.commit()
+    cursor.close()
+    dbyo.close()
 
 
 def notes(request):
@@ -31,10 +50,11 @@ def delete_rows(request):
 
     my_query = queries["delete_row"] %mls_ids_conv
     
-    cursor = db.cursor()
-    cursor.execute(my_query)
-    db.commit()
-    cursor.close()
+    commmitsql(my_query)
+    #cursor = db.cursor()
+    #cursor.execute(my_query)
+    #db.commit()
+    #cursor.close()
 
 
     return HttpResponse('whatevs')
@@ -48,10 +68,11 @@ def un_watch_and_delete_and_rows(request):
 
     my_query = queries["delete_unwatch_row"] %mls_ids_conv
 
-    cursor = db.cursor()
-    cursor.execute(my_query)
-    db.commit()
-    cursor.close()
+    commmitsql(my_query)
+    #cursor = db.cursor()
+    #cursor.execute(my_query)
+    #db.commit()
+    #cursor.close()
 
     return HttpResponse('whatevs')
 
@@ -66,10 +87,11 @@ def undelete(request):
 
     my_query = queries["undelete_row"] %mls_ids_conv
     
-    cursor = db.cursor()
-    cursor.execute(my_query)
-    db.commit()
-    cursor.close()
+    commmitsql(my_query)
+    #cursor = db.cursor()
+    #cursor.execute(my_query)
+    #db.commit()
+    #cursor.close()
 
 
     return HttpResponse('whatevs')
@@ -84,11 +106,12 @@ def add_watch_list(request):
     mls_ids_conv = ", ".join([str(x) for x in to_add])
 
     my_query = queries["add_watch_list"] %mls_ids_conv
-    
-    cursor = db.cursor()
-    cursor.execute(my_query)
-    db.commit()
-    cursor.close()
+
+    commmitsql(my_query)
+    #cursor = db.cursor()
+    #cursor.execute(my_query)
+    #db.commit()
+    #cursor.close()
 
 
     return HttpResponse('whatevs')
@@ -103,10 +126,11 @@ def remove_watch_list(request):
 
     my_query = queries["remove_watch_list"] %mls_ids_conv
     
-    cursor = db.cursor()
-    cursor.execute(my_query)
-    db.commit()
-    cursor.close()
+    commmitsql(my_query)
+    #cursor = db.cursor()
+    #cursor.execute(my_query)
+    #db.commit()
+    #cursor.close()
 
 
     return HttpResponse('whatevs')
@@ -115,44 +139,23 @@ def remove_watch_list(request):
 def update_note(request):
  
     mls_id, note_input = request.POST["mls_id"], request.POST["note_input"]
-    query = queries["update_note"] %(note_input, mls_id)
+    my_query = queries["update_note"] %(note_input, mls_id)
     
-    cursor = db.cursor()
-    cursor.execute(query)
-    db.commit()
-    cursor.close()
+    commmitsql(my_query)
+    #cursor = db.cursor()
+    #cursor.execute(query)
+    #db.commit()
+    #cursor.close()
     return HttpResponse('whatevs')
-
-
-def get_main(request):
-    query = queries["get_not_deleted_not_hotlist"]
-    query_get_timestamp =  queries["get_latest_timestamp"]
-
-
-    cursor = db.cursor()
-    cursor.execute(query)
-    result = cursor.fetchall()
-
-    cursor.execute(query_get_timestamp)
-    result_time = cursor.fetchone()[0]
-    result_time = result_time.replace(tzinfo = from_zone)
-    result_time = result_time.astimezone(to_zone)
-    result_time = result_time.strftime('%Y-%m-%d %H:%M:%S')
-
-    cursor.close()
-
-    return_data = result[:10]
-
-    return render(request, 'mlsapp/data.html', {'mydata': return_data, 'latest_time': result_time})
-
 
 def watch_list(request):
     query = queries["get_watchlist"]
 
-    cursor = db.cursor()
-    cursor.execute(query)
-    result = cursor.fetchall()
-    cursor.close()
+    result = getsql(query)
+    #cursor = db.cursor()
+    #cursor.execute(query)
+    #result = cursor.fetchall()
+    #cursor.close()
 
     if not result:
         result = [(),]
@@ -163,15 +166,56 @@ def watch_list(request):
 def deleted(request):
     query = queries["get_deleted"]
 
-    cursor = db.cursor()
-    cursor.execute(query)
-    result = cursor.fetchall()
-    cursor.close()
+    result = getsql(query)
+    #cursor = db.cursor()
+    #cursor.execute(query)
+    #result = cursor.fetchall()
+    #cursor.close()
 
     if not result:
         result = [(),]
 
     return render(request, 'mlsapp/deleted.html', {'mydata': result})
+
+
+
+def get_main(request):
+    query = queries["get_not_deleted_not_hotlist"]
+    query_get_timestamp =  queries["get_latest_timestamp"]
+
+    #try:
+    #    cursor = db.cursor()
+    #    cursor.execute(query)
+    #    result = cursor.fetchall()
+    #    cursor.execute(query_get_timestamp)
+    #except (AttributeError, MySQLdb.OperationalError):
+    #except:
+    #    print 'fail'
+    #    db = sqldb.connect("localhost","root","","main")
+    #    cursor = db.cursor()
+    #    cursor.execute(query)
+    #    result = cursor.fetchall()
+    #    cursor.execute(query_get_timestamp)
+    #import pdb
+    #pdb.set_trace()
+    result = getsql(query)
+    result_time = getsql(query_get_timestamp)
+
+    #import pdb
+    #pdb.set_trace()
+
+    result_time = result_time[0][0]
+    result_time = result_time.replace(tzinfo = from_zone)
+    result_time = result_time.astimezone(to_zone)
+    result_time = result_time.strftime('%Y-%m-%d %H:%M:%S')
+
+    #cursor.close()
+
+    return_data = result[:10]
+
+    return render(request, 'mlsapp/data.html', {'mydata': return_data, 'latest_time': result_time})
+
+
 
 
 #def get_main2(request):
